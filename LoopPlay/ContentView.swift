@@ -19,10 +19,33 @@ struct ContentView: View {
 
 struct Home: View {
     @State var index = 0
+    @State var top = 0
     
     var body: some View {
         ZStack {
             VStack {
+                HStack(spacing: 15){
+                    Button {
+                        self.top = 0
+                        
+                    } label: {
+                        Text("Following")
+                            .foregroundColor((self.top == 0) ? .white : Color.white.opacity(0.45))
+                            .fontWeight((self.top == 0) ? .bold : .none)
+                            .padding(.vertical)
+                    }
+
+                    Button {
+                        self.top = 1
+                        
+                    } label: {
+                        Text("For you")
+                            .foregroundColor((self.top == 1) ? .white : Color.white.opacity(0.45))
+                            .fontWeight((self.top == 1) ? .bold : .none)
+                            .padding(.vertical)
+                    }
+                }
+                
                 Spacer()
                 HStack {
                     Spacer()
@@ -70,62 +93,65 @@ struct Home: View {
                     .padding(.trailing)
                 }
                 HStack {
-                    Button(action: {
+                    Button {
                         self.index = 0
                         
-                    }, label: {
+                    }label: {
                         Image("home")
                             .resizable()
                             .frame(width: 25, height: 25)
-                            .foregroundColor(self.index == 0 ? .white : Color.white.opacity(0.35))
+                            .foregroundColor((self.index == 0) ? .white : Color.white.opacity(0.35))
                             .padding(.horizontal)
-                        
-                    })
-                    Button(action: {
+                    }
+                    
+                    Button{
                         self.index = 1
                         
-                    }, label: {
+                    } label: {
                         Image("search")
                             .resizable()
                             .frame(width: 25, height: 25)
-                            .foregroundColor(self.index == 1 ? .white : Color.white.opacity(0.35))
+                            .foregroundColor((self.index == 1) ? .white : Color.white.opacity(0.35))
                             .padding(.horizontal)
                         
-                    })
-                    Button(action: {
+                    }
+                    
+                    Button {
                         //self.index = 0
                         
-                    }, label: {
+                    } label: {
                         Image("upload")
                             .resizable()
                             .frame(width: 50, height: 35)
                             //.foregroundColor(self.index == 0 ? .white : Color.white.opacity(0.35))
                             .padding(.horizontal)
                         
-                    })
-                    Button(action: {
+                    }
+                    
+                    Button {
                         self.index = 2
                         
-                    }, label: {
+                    } label: {
                         Image("comment")
                             .resizable()
                             .frame(width: 25, height: 25)
-                            .foregroundColor(self.index == 2 ? .white : Color.white.opacity(0.35))
+                            .foregroundColor((self.index == 2) ? .white : Color.white.opacity(0.35))
                             .padding(.horizontal)
                         
-                    })
-                    Button(action: {
+                    }
+                    
+                    Button {
                         self.index = 3
                         
-                    }, label: {
+                    } label: {
                         Image("profile")
                             .resizable()
                             .frame(width: 25, height: 25)
-                            .foregroundColor(self.index == 3 ? .white : Color.white.opacity(0.35))
-                            .cornerRadius(50)
+                            .foregroundColor((self.index == 3) ? .white : Color.white.opacity(0.35))
+                            //.cornerRadius(50)
                             .padding(.horizontal)
-                        
-                    })
+                    }
+                    
                 }
                 .padding(.horizontal)
             }

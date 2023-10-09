@@ -184,89 +184,130 @@ struct videoView: View {
     @Binding var data: [Video]
     
     var body: some View {
-    
+        
         VStack(spacing: 0) {
-            ForEach(self.data) { i in
-                Player(player: i.player)
-                // fullscreen view for paging...
-                    .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-                    .offset(y: -5)
+            ForEach(0..<self.data.count) { i in
+                ZStack {
+                    Player(player: self.data[i].player)
+                    // fullscreen view for paging...
+                        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+                        .offset(y: -5)
+                    
+                    if self.data[i].replay {
+                        Button(action: {
+                            // to replay the video
+                            self.data[i].replay = false
+                            self.data[i].player.seek(to: .zero)
+                            self.data[i].player.play()
+                        }, label: {
+                            Image(systemName: "goforward")
+                                .resizable()
+                                .frame(width: 55, height: 60)
+                                .foregroundColor(.white)
+                        })
+                    }
+                }
             }
         }
         .onAppear {
             self.data[0].player.play()
-        }
-    }
-}
-
-struct Player: UIViewControllerRepresentable {
-    var player: AVPlayer
-    func makeUIViewController(context: Context) -> AVPlayerViewController {
-        let view = AVPlayerViewController()
-        view.player = player
-        view.showsPlaybackControls = false
-        view.videoGravity = .resizeAspectFill
-        return view
-    }
-    
-    func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
-        
-    }
-}
-
-// video data representation
-struct Video : Identifiable {
-    var id: Int
-    var player: AVPlayer
-    var replay: Bool
-}
-
-struct PlayerScrollView: UIViewRepresentable {
-    func makeCoordinator() -> Cordinator {
-        return PlayerScrollView.Cordinator(parent1: self)
-    }
-    
-    @Binding var data : [Video]
-    
-    func makeUIView(context: Context) -> UIScrollView {
-        let view = UIScrollView()
-        let childView = UIHostingController(rootView: videoView(data: self.$data))
-        
-        //for full covering the screening, we use height * count
-        childView.view.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
-        
-        view.contentSize = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
-        
-        view.addSubview(childView.view)
-        view.showsVerticalScrollIndicator = false
-        view.showsHorizontalScrollIndicator = false
-        view.contentInsetAdjustmentBehavior = .never
-        view.isPagingEnabled = true
-        view.delegate = context.coordinator
-        
-        return view
-    }
-    
-    func updateUIView(_ uiView: UIScrollView, context: Context) {
-        //dynamically update height
-        uiView.contentSize = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
-        
-        for i in 0..<uiView.subviews.count {
-            uiView.subviews[i].frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
-        }
-    }
-    
-    class Cordinator : NSObject, UIScrollViewDelegate {
-        var parent : PlayerScrollView
-        
-        init(parent1 : PlayerScrollView) {
-            parent = parent1
-        }
-        
-        func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-            let index = Int(scrollView.contentOffset.y / UIScreen.main.bounds.height)
             
-            print(index)
+            self.data[0].player.actionAtItemEnd = .none
+            
+            NotificationCenter.default.addObserver(forName: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: self.data[0].player.currentItem, queue: .main) { (_) in
+                
+                self.data[0].replay = true
+            }
+        }
+    }
+    
+    struct Player: UIViewControllerRepresentable {
+        var player: AVPlayer
+        func makeUIViewController(context: Context) -> AVPlayerViewController {
+            let view = AVPlayerViewController()
+            view.player = player
+            view.showsPlaybackControls = false
+            view.videoGravity = .resizeAspectFill
+            return view
+        }
+        
+        func updateUIViewController(_ uiViewController: AVPlayerViewController, context: Context) {
+            
+        }
+    }
+    
+    // video data representation
+    struct Video : Identifiable {
+        var id: Int
+        var player: AVPlayer
+        var replay: Bool
+    }
+    
+    struct PlayerScrollView: UIViewRepresentable {
+        func makeCoordinator() -> Cordinator {
+            return PlayerScrollView.Cordinator(parent1: self)
+        }
+        
+        @Binding var data : [Video]
+        
+        func makeUIView(context: Context) -> UIScrollView {
+            let view = UIScrollView()
+            let childView = UIHostingController(rootView: videoView(data: self.$data))
+            
+            //for full covering the screening, we use height * count
+            childView.view.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
+            
+            view.contentSize = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
+            
+            view.addSubview(childView.view)
+            view.showsVerticalScrollIndicator = false
+            view.showsHorizontalScrollIndicator = false
+            view.contentInsetAdjustmentBehavior = .never
+            view.isPagingEnabled = true
+            view.delegate = context.coordinator
+            
+            return view
+        }
+        
+        func updateUIView(_ uiView: UIScrollView, context: Context) {
+            //dynamically update height
+            uiView.contentSize = CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
+            
+            for i in 0..<uiView.subviews.count {
+                uiView.subviews[i].frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * CGFloat(data.count))
+            }
+        }
+        
+        class Cordinator : NSObject, UIScrollViewDelegate {
+            var parent : PlayerScrollView
+            var index = 0
+            
+            init(parent1 : PlayerScrollView) {
+                parent = parent1
+            }
+            
+            func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+                let currentIndex = Int(scrollView.contentOffset.y / UIScreen.main.bounds.height)
+                
+                if index != currentIndex {
+                    index = currentIndex
+                    
+                    for i in 0..<parent.data.count {
+                        //pausing other videos
+                        parent.data[i].player.seek(to: .zero)
+                        parent.data[i].player.pause()
+                    }
+                    
+                    parent.data[index].player.play()
+                    
+                    parent.data[index].player.actionAtItemEnd = .none
+                    
+                    NotificationCenter.default.addObserver(forName: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: parent.data[index].player.currentItem, queue: .main) { (_) in
+                        
+                        self.parent.data[self.index].replay = true
+                    }
+                }
+            }
         }
     }
 }

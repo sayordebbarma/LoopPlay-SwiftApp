@@ -222,6 +222,10 @@ struct Video : Identifiable {
 }
 
 struct PlayerScrollView: UIViewRepresentable {
+    func makeCoordinator() -> Cordinator {
+        return PlayerScrollView.Cordinator(parent1: self)
+    }
+    
     @Binding var data : [Video]
     
     func makeUIView(context: Context) -> UIScrollView {
@@ -238,6 +242,7 @@ struct PlayerScrollView: UIViewRepresentable {
         view.showsHorizontalScrollIndicator = false
         view.contentInsetAdjustmentBehavior = .never
         view.isPagingEnabled = true
+        view.delegate = context.coordinator
         
         return view
     }
@@ -260,6 +265,8 @@ struct PlayerScrollView: UIViewRepresentable {
         
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
             let index = Int(scrollView.contentOffset.y / UIScreen.main.bounds.height)
+            
+            print(index)
         }
     }
 }
